@@ -1,0 +1,53 @@
+{
+  "selected_features": [
+    "Vendor INCO Term",
+    "Fulfill Via",
+    "Vendor",
+    "First Line Designation",
+    "Sub Classification",
+    "Freight Cost (USD)",
+    "Line Item Value",
+    "weight_missing",
+    "Dosage Form",
+    "Pack Price",
+    "freight_missing",
+    "Managed By",
+    "Weight (Kilograms)",
+    "Shipment Mode",
+    "scheduled_weekday",
+    "Unit of Measure (Per Pack)",
+    "Line Item Insurance (USD)",
+    "cost_per_kg",
+    "Product Group",
+    "Manufacturing Site",
+    "Country",
+    "scheduled_month",
+    "Line Item Quantity",
+    "Unit Price"
+  ],
+  "above_noise_features": [
+    "Vendor INCO Term",
+    "Fulfill Via",
+    "Vendor",
+    "First Line Designation",
+    "Sub Classification",
+    "Freight Cost (USD)",
+    "Line Item Value"
+  ],
+  "excluded_target_or_leakage": [
+    "is_delayed",
+    "delay_days",
+    "Delivered to Client Date",
+    "Delivery Recorded Date"
+  ],
+  "excluded_text_columns": [
+    "Item Description",
+    "Molecule/Test Type",
+    "Brand",
+    "Dosage"
+  ],
+  "excluded_duplicate_columns": [
+    "value_per_item"
+  ],
+  "method": "Random Forest (one-hot encoded categories, train-only imputation) permutation importance per original column vs a random-noise column (for information); all features are passed to modeling because the noise-based cut was unstable"
+}
