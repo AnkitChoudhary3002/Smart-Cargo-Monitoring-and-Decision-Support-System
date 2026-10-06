@@ -1,201 +1,134 @@
 # Smart-Cargo-Monitoring-and-Decision-Support-System
 
-An end-to-end supply-chain analytics project for understanding shipment delays,
-comparing vendor performance, scoring delivery-risk levels, and presenting
-operational insights through a Streamlit application and Power BI-ready data.
+A Streamlit decision-support application that estimates shipment-delay risk from historical SCMS delivery data. It provides an interactive shipment form, a calibrated delay-risk score, model-driver explanations, and one-variable-at-a-time what-if analysis.
 
-## Project overview
+> **Important:** The app reports learned associations from historical data. It does not establish that changing a shipment attribute will cause delay risk to change.
 
-This project uses the SCMS Delivery History dataset to:
+## Features
 
-- clean and prepare shipment records;
-- explore delivery performance and operational patterns;
-- analyze vendor and shipment-mode performance;
-- train a machine-learning model for shipment delay risk;
-- generate model scores for dashboard analysis;
-- provide an interactive what-if and risk-analysis interface.
+- Estimates a shipment's probability of delay and assigns a Low, Moderate, Elevated, or High risk band.
+- Explains the largest factors influencing the model score relative to typical historical shipments.
+- Compares a selected shipment input with alternate values using what-if scoring.
+- Shows historical support for category alternatives and flags thin data.
+- Generates practical planner guidance using a local or cloud Ollama model, with a built-in rule-based fallback if the LLM is unavailable.
+- Includes notebooks for preprocessing, exploratory/vendor analysis, and model development.
 
-The Google Gemini API is included in the dependencies for optional
-LLM-generated explanations and insights in the application.
-
-## Architecture
+## Project layout
 
 ```text
-intelligent-cargo-logistics/
-│
-├── README.md
-├── requirements.txt
-│
+.
 ├── data/
-│   ├── raw/
-│   │   └── SCMS_Delivery_History_Dataset.csv
-│   └── processed_data/
-│       ├── scms_clean.pkl
-│       ├── vendor_scores.pkl
-│       ├── feature_ranking.csv
-│       ├── selected_features.json
-│       └── powerbi_delay_risk.csv
-│
+│   ├── raw/SCMS_Delivery_History_Dataset.csv   # source delivery-history data
+│   └── processed_data/                         # notebook-generated data outputs
 ├── Notebooks/
 │   ├── 01_Preprocessing.ipynb
 │   ├── 02_EDA_and_Vendor_Analysis.ipynb
 │   └── 03_Modeling_clean.ipynb
-│
-├── models/
-│   └── delay_model.joblib
-│
 ├── model_artifacts/
-│   └── delay_model.joblib
-│
+│   └── delay_model.joblib                      # model used by the Streamlit app
 ├── streamlit/
-│   └── app.py
-│
-├── processed_data/
-│   ├── scms_clean.pkl
-│   └── vendor_scores.pkl
-│
-└── logi/
-    └── Python virtual environment
+│   └── app.py                                  # application entry point
+├── requirements.txt
+└── README.md
 ```
 
-## Notebook workflow
+## Requirements
 
-Run the notebooks in this order:
+- Python 3.10 or later
+- A trained model artifact at `model_artifacts/delay_model.joblib`
+- Optional: [Ollama](https://ollama.com/) for AI-generated planner advice
 
-### 1. Data preprocessing
+## Run the application
 
-`Notebooks/01_Preprocessing.ipynb`
-
-- loads the raw CSV from `data/raw/`;
-- cleans column names and values;
-- handles missing values and data types;
-- creates shipment-level features;
-- saves the cleaned dataset to `data/processed_data/scms_clean.pkl`.
-
-### 2. Exploratory and vendor analysis
-
-`Notebooks/02_EDA_and_Vendor_Analysis.ipynb`
-
-- loads the cleaned dataset;
-- analyzes delay distributions and shipment patterns;
-- compares shipment modes and vendors;
-- creates vendor performance scores;
-- saves vendor analysis outputs to `data/processed_data/`.
-
-### 3. Model development
-
-`Notebooks/03_Modeling_clean.ipynb`
-
-- prepares model features;
-- trains and evaluates classification models;
-- selects a decision threshold;
-- saves the trained model to `models/delay_model.joblib`;
-- exports scored records to `data/processed_data/powerbi_delay_risk.csv`.
-
-## Running the project
-
-### 1. Open the project directory
+From the project root in PowerShell:
 
 ```powershell
-cd "E:\NLP- predictive cargo latency engine"
-```
-
-### 2. Activate the existing environment
-
-```powershell
+# Optional: activate the repository's existing virtual environment
 .\logi\Scripts\Activate.ps1
-```
 
-If PowerShell blocks script execution for the current session, run:
+# Or create and activate your own environment
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\logi\Scripts\Activate.ps1
-```
-
-### 3. Install dependencies
-
-```powershell
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### 4. Run the notebooks
-
-Run the notebooks in the following order:
-
-```text
-01_Preprocessing.ipynb
-02_EDA_and_Vendor_Analysis.ipynb
-03_Modeling_clean.ipynb
-```
-
-The notebooks should be opened from the project workspace so paths such as
-`../data/processed_data/` resolve correctly.
-
-### 5. Launch the Streamlit application
-
-From the project root:
-
-```powershell
+# Start the dashboard
 streamlit run streamlit/app.py
 ```
 
-The trained model must exist before launching the application:
+Open the local URL displayed by Streamlit, usually `http://localhost:8501`.
 
-```text
-models/delay_model.joblib
+If PowerShell prevents environment activation, run this once for the current terminal session:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
-## Data outputs
+## Using the dashboard
 
-| Output | Purpose |
+1. Enter shipment details, or select **Start from a past shipment**.
+2. Review the estimated delay risk, risk band, and alert status.
+3. Inspect the driver chart to understand which inputs most influence the model score.
+4. Use **What-if** to change one field and compare the resulting model estimate.
+5. Select **Generate advice** for operational guidance. If Ollama cannot be reached, the app automatically shows rule-based advice instead.
+
+What-if results keep all other fields fixed. They are useful for exploring model behavior, but they are not causal recommendations.
+
+## Ollama configuration (optional)
+
+By default, the app uses local Ollama at `http://localhost:11434` with `qwen2.5-coder:latest`. Install and start Ollama, then download the default local model:
+
+```powershell
+ollama pull qwen2.5-coder:latest
+```
+
+For Ollama Cloud, enter an API key in the app sidebar for the current browser session, or set `OLLAMA_API_KEY`. The app does not save sidebar keys to disk.
+
+The following optional environment variables override the defaults:
+
+| Variable | Purpose |
 |---|---|
-| `data/processed_data/scms_clean.pkl` | Cleaned shipment records |
-| `data/processed_data/vendor_scores.pkl` | Vendor-level performance analysis |
-| `data/processed_data/feature_ranking.csv` | Feature importance or ranking results |
-| `data/processed_data/selected_features.json` | Selected model features |
-| `data/processed_data/powerbi_delay_risk.csv` | Model-scored records for Power BI |
-| `models/delay_model.joblib` | Serialized trained model and related artifacts |
+| `OLLAMA_API_KEY` | Ollama Cloud API key |
+| `OLLAMA_HOST` | Custom Ollama server URL |
+| `OLLAMA_MODEL` | Model name to use |
+| `DELAY_MODEL_PATH` | Path to an alternate `delay_model.joblib` artifact |
 
-## Configuration and API keys
+Example for the current PowerShell session:
 
-Do not commit API keys to the repository. If the Streamlit application uses
-Google Gemini, provide the key through an environment variable or a local
-`.env` file that is excluded from version control.
-
-Example:
-
-```text
-GOOGLE_API_KEY=your_api_key_here
+```powershell
+$env:OLLAMA_MODEL = "qwen2.5-coder:latest"
+streamlit run streamlit/app.py
 ```
 
-Never place a real key directly in a notebook, Python file, README, or
-dashboard export.
+## Rebuilding the model and data products
 
-## Technology stack
+Run the notebooks in order from the `Notebooks` directory or in an environment where their relative paths resolve correctly:
 
-- Python
-- pandas and NumPy
-- scikit-learn
-- XGBoost
-- imbalanced-learn
-- joblib
-- Streamlit
-- Altair
-- Power BI-compatible CSV exports
-- Google Gemini API for optional natural-language insights
+1. `01_Preprocessing.ipynb` — cleans the raw SCMS delivery-history data.
+2. `02_EDA_and_Vendor_Analysis.ipynb` — explores delay patterns and vendor performance.
+3. `03_Modeling_clean.ipynb` — trains, evaluates, calibrates, and saves the delay-risk model artifact.
 
-## Important modeling note
+After retraining, ensure the application model is available at `model_artifacts/delay_model.joblib`, or set `DELAY_MODEL_PATH` before launching Streamlit.
 
-The model output represents learned risk associations in historical shipment
-data. It should support operational review and decision-making, not be treated
-as proof that a particular shipment factor directly causes a delay.
+## Outputs
 
-## Future improvements
+| Location | Description |
+|---|---|
+| `data/processed_data/scms_clean.pkl` | Cleaned shipment data |
+| `data/processed_data/vendor_scores.pkl` | Vendor performance scores |
+| `data/processed_data/feature_ranking.csv` | Feature-ranking export |
+| `data/processed_data/selected_features.json` | Selected model features |
+| `data/processed_data/powerbi_delay_risk.csv` | Power BI-compatible risk export |
+| `model_artifacts/delay_model.joblib` | Application model, calibration data, and historical reference data |
 
-- consolidate duplicate generated-output folders;
-- move reusable notebook logic into a `src/` package;
-- add automated tests for preprocessing and inference;
-- add model versioning and experiment tracking;
-- add a `.env.example` file and `.gitignore`;
-- add application screenshots and evaluation metrics.
+## Technology
+
+Python, pandas, NumPy, scikit-learn, XGBoost, imbalanced-learn, Streamlit, Altair, joblib, and requests.
+
+## Model limitations
+
+- Predictions depend on the coverage and quality of the historical training data.
+- Low-frequency categories and unfamiliar shipment profiles may produce unreliable estimates.
+- The explanatory chart describes the model's behavior, not real-world causes.
+- Use the score to prioritize review and follow-up; combine it with operational knowledge before making decisions.
